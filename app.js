@@ -16,7 +16,7 @@ app.use(cookieParser());
 app.use(express.urlencoded({ extended: false }));
 app.use(
   cors({
-    origin: ["http://localhost:9002", "http://localhost:5173"],
+    origin: [process.env.FRONTEND_URL],
     credentials: true,
   })
 );
@@ -29,6 +29,7 @@ app.get("/", (req, res) => {
 const router = require("./routes/routes");
 app.use("/api/users", router);
 
+// 
 app.use(errorHandler)
 // Setting up databse and starting the API server
 mongoose.connect(process.env.MONGODB_URI).then(() => {

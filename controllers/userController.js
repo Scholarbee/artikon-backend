@@ -27,9 +27,39 @@ exports.addtUser = asyncHandler(async (req, res) => {
   if (userExist) {
     res.status(400);
     throw new Error("Please email has been used. Choose another.");
+  }
+
+  const user = await User.create(req.body);
+  //   Generate Token
+  const token = generateToken(user._id);
+
+  // Send HTTP-only cookie
+  res.cookie("token", token, {
+    path: "/",
+    httpOnly: true,
+    expires: new Date(Date.now() + 1000 * 86400), // 1 day
+    sameSite: "none",
+    secure: true,
+  });
+
+  if (user) {
+    const { name, dob, gender, phone, bio, userType, email, password, photo } =
+      user;
+    res.status(201).json({
+      name,
+      dob,
+      gender,
+      phone,
+      bio,
+      userType,
+      email,
+      password,
+      photo,
+      token,
+    });
   } else {
-    const user = await User.create(req.body);
-    res.status(201).json(user);
+    res.status(400);
+    throw new Error("Invalid user data");
   }
 });
 
