@@ -10,6 +10,8 @@ const {
   logout,
   loginStatus,
   changePassword,
+  forgotPassword,
+  resetPassword,
 } = require("../controllers/userController");
 
 router.get("/all-users", getUsers);
@@ -24,5 +26,7 @@ router.get("/logout", logout);
 router.get("/login-status", loginStatus);
 
 router.post("/change-password", userInfo, changePassword);
+router.post("/forgot-password", forgotPassword);
+router.post("/reset-password/:resetToken", resetPassword);
 
 module.exports = router;

@@ -29,8 +29,8 @@ app.get("/", (req, res) => {
 const router = require("./routes/routes");
 app.use("/api/users", router);
 
-// 
-app.use(errorHandler)
+//
+app.use(errorHandler);
 // Setting up databse and starting the API server
 mongoose.connect(process.env.MONGODB_URI).then(() => {
   console.log("Connected to mongoDB");
