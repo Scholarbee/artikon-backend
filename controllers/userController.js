@@ -5,8 +5,6 @@ const bcrypt = require("bcryptjs");
 const Token = require("../models/tokenModel");
 const crypto = require("crypto");
 const sendEmail = require("../utils/sendEmail");
-// const { count } = require("console");
-// const { trusted } = require("mongoose");
 
 // Generate Token
 const generateToken = (id) => {
@@ -95,26 +93,34 @@ exports.getUsers = asyncHandler(async (req, res) => {
 
 // Edit user
 exports.edittUser = asyncHandler(async (req, res) => {
-  let { id } = req.params;
-  const { name, dob, gender, phone, bio, userType, email, password, photo } =
-    req.body;
-
-  if (!name || !phone || !dob || !gender) {
-    res.status(400);
-    throw new Error("Please all fields are required.");
-  }
-
-  const user = await User.findByIdAndUpdate(
-    { _id: id },
-    { name, dob, gender, phone, bio, userType, photo },
-    { new: trusted }
-  );
+  const user = await User.findById(req.user._id);
 
   if (user) {
-    res.status(200).json(user);
+    const { name, dob, gender, phone, bio, userType, email, photo } = user;
+    user.email = email;
+    user.name = req.body.name || name;
+    user.gender = req.body.gender || gender;
+    user.dob = req.body.dob || dob;
+    user.userType = req.body.userType || userType;
+    user.phone = req.body.phone || phone;
+    user.bio = req.body.bio || bio;
+    user.photo = req.body.photo || photo;
+
+    const updatedUser = await user.save();
+    res.status(200).json({
+      _id: updatedUser._id,
+      name: updatedUser.name,
+      gender: updatedUser.gender,
+      dob: updatedUser.dob,
+      userType: updatedUser.userType,
+      email: updatedUser.email,
+      photo: updatedUser.photo,
+      phone: updatedUser.phone,
+      bio: updatedUser.bio,
+    });
   } else {
     res.status(404);
-    throw new Error("Invalid user data");
+    throw new Error("User not found");
   }
 });
 

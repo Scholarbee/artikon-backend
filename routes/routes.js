@@ -17,7 +17,7 @@ const {
 router.get("/all-users", getUsers);
 router.get("/user/:id", getUser);
 router.post("/add-user", addtUser);
-router.put("/edit-user/:id", edittUser);
+router.put("/edit-user", userInfo, edittUser);
 router.delete("/delete-user/:id", deltUser);
 
 // Auth
