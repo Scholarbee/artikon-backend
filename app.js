@@ -31,7 +31,7 @@ const postRouter = require("./routes/postRoutes");
 app.use("/api/users", userRouter);
 app.use("/api/posts", postRouter);
 
-//
+// Error display format
 app.use(errorHandler);
 // Setting up databse and starting the API server
 mongoose.connect(process.env.MONGODB_URI).then(() => {

@@ -1,7 +1,6 @@
 const expressAsyncHandler = require("express-async-handler");
 const User = require("../models/userModel");
 const Post = require("../models/postModel");
-// const asyncHandler = require("express-async-handler");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const Token = require("../models/tokenModel");
@@ -159,7 +158,6 @@ exports.addLike = async (req, res, next) => {
   const posts = await Post.find()
     .sort({ createdAt: -1 })
     .populate("postedBy", "name");
-  //   main.io.emit("add-like", posts);
 
   if (post && posts) {
     res.status(200).json({
@@ -186,7 +184,6 @@ exports.removeLike = async (req, res, next) => {
   const posts = await Post.find()
     .sort({ createdAt: -1 })
     .populate("postedBy", "name");
-  //   main.io.emit("remove-like", posts);
 
   if (post && posts) {
     res.status(200).json({
