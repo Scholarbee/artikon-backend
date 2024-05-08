@@ -26,8 +26,10 @@ app.get("/", (req, res) => {
   res.send("Server started successfully...");
 });
 
-const router = require("./routes/routes");
-app.use("/api/users", router);
+const userRouter = require("./routes/userRoutes");
+const postRouter = require("./routes/postRoutes");
+app.use("/api/users", userRouter);
+app.use("/api/posts", postRouter);
 
 //
 app.use(errorHandler);

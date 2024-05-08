@@ -9,11 +9,11 @@ const userSchema = mongoose.Schema(
     },
     gender: {
       type: String,
-      required: [true, "Please add gender"],
+      // required: [true, "Please add gender"],
     },
     dob: {
       type: Date,
-      required: [true, "Please add birth date"],
+      // required: [true, "Please add birth date"],
     },
     email: {
       type: String,
@@ -38,11 +38,15 @@ const userSchema = mongoose.Schema(
     },
     phone: {
       type: String,
-      required: [true, "Please add a phone number"],
+      // required: [true, "Please add a phone number"],
+    },
+    city: {
+      type: String,
+      // required: [true, "Please add a phone number"],
     },
     userType: {
       type: String,
-      default: "",
+      default: "user",
     },
     bio: {
       type: String,

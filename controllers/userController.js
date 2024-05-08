@@ -13,10 +13,10 @@ const generateToken = (id) => {
 
 // Sign Up
 exports.addtUser = asyncHandler(async (req, res) => {
-  const { name, dob, gender, phone, bio, userType, email, password, photo } =
+  const { name, dob, gender, city, phone, bio, userType, email, password, photo } =
     req.body;
 
-  if (!name || !email || !password || !phone || !dob || !gender || !userType) {
+  if (!name || !email || !password) {
     res.status(400);
     throw new Error("Please all fields are required.");
   }
@@ -42,7 +42,7 @@ exports.addtUser = asyncHandler(async (req, res) => {
   });
 
   if (user) {
-    const { name, dob, gender, phone, bio, userType, email, password, photo } =
+    const { name, dob, gender,city, phone, bio, userType, email, password, photo } =
       user;
     res.status(201).json({
       name,
@@ -50,6 +50,7 @@ exports.addtUser = asyncHandler(async (req, res) => {
       gender,
       phone,
       bio,
+      city,
       userType,
       email,
       photo,
@@ -61,23 +62,23 @@ exports.addtUser = asyncHandler(async (req, res) => {
   }
 });
 
-// Get user by id
+// Get user info
 exports.getUser = asyncHandler(async (req, res) => {
   let { id } = req.params;
-  const user = await User.findById({ _id: id });
+  const user = await User.findById(id);
   if (user) {
-    const { name, dob, gender, phone, bio, userType, email, password, photo } =
+    const { name, dob, gender, city, phone, bio, userType, email, photo } =
       user;
     res.status(201).json({
       name,
       dob,
       gender,
       phone,
+      city,
       bio,
       userType,
       email,
       photo,
-      token,
     });
   } else {
     res.status(400);
@@ -172,13 +173,14 @@ exports.login = asyncHandler(async (req, res) => {
     });
   }
   if (user && verified) {
-    const { _id, name, email, photo, phone, bio, dob, userType, gender } = user;
+    const { _id, name, email, photo,city, phone, bio, dob, userType, gender } = user;
     res.status(200).json({
       _id,
       name,
       dob,
       gender,
       phone,
+      city,
       bio,
       userType,
       email,
