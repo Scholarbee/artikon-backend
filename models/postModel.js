@@ -30,6 +30,32 @@ const postSchema = new mongoose.Schema(
         },
       },
     ],
+    appointments: [
+      {
+        bookedBy: {
+          type: ObjectId,
+          ref: "User",
+        },
+        desc: String,
+        created: { type: Date, default: Date.now },
+        proposedDate: { type: Date, default: Date.now },
+      },
+    ],
+    orders: [
+      {
+        orderedBy: {
+          type: ObjectId,
+          ref: "User",
+        },
+        quantity: {
+          type: Number,
+          required: [true, "Quantity is required"],
+        },
+
+        created: { type: Date, default: Date.now },
+        proposedDate: { type: Date, default: Date.now },
+      },
+    ],
   },
   { timestamps: true }
 );
