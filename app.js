@@ -28,8 +28,10 @@ app.get("/", (req, res) => {
 
 const userRouter = require("./routes/userRoutes");
 const postRouter = require("./routes/postRoutes");
+const contactRouter = require("./routes/contactRoute");
 app.use("/api/users", userRouter);
 app.use("/api/posts", postRouter);
+app.use("/api/contact", contactRouter);
 
 // Error display format
 app.use(errorHandler);

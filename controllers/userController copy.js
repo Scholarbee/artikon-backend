@@ -1,5 +1,5 @@
-const User = require("../models/userModel");
 const asyncHandler = require("express-async-handler");
+const User = require("../models/userModel");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const Token = require("../models/tokenModel");
@@ -11,49 +11,56 @@ const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "1d" });
 };
 
-// Sign Up
-exports.addtUser = asyncHandler(async (req, res) => {
-  const { name, dob, gender, city, phone, bio, userType, email, password, photo } =
-    req.body;
+// Register User
+const registerUser = asyncHandler(async (req, res) => {
+  const { name, email, password } = req.body;
 
+  // Validation
   if (!name || !email || !password) {
     res.status(400);
-    throw new Error("Please all fields are required.");
+    throw new Error("Please fill in all required fields");
   }
-
-  const userExist = await User.findOne({ email: email });
-
-  if (userExist) {
+  if (password.length < 6) {
     res.status(400);
-    throw new Error("Please email has been used. Choose another.");
+    throw new Error("Password must be up to 6 characters");
   }
 
-  const user = await User.create(req.body);
-  //   Generate Token
+  // Check if user email already exists
+  const userExists = await User.findOne({ email });
+
+  if (userExists) {
+    res.status(400);
+    throw new Error("Email has already been registered");
+  }
+
+  // Create new user
+  const user = await User.create({
+    name,
+    email,
+    password,
+  });
+
+  //  Generate Token
   const token = generateToken(user._id);
 
   // Send HTTP-only cookie
-  res.cookie("artikonToken", token, {
+  res.cookie("token", token, {
     path: "/",
     httpOnly: true,
-    expires: new Date(Date.now() + 1000 * 86400), // 1 day
+    expires: new Date(Date.now() + 1000 * 86400),
     sameSite: "none",
     secure: true,
   });
 
   if (user) {
-    const { name, dob, gender,city, phone, bio, userType, email, password, photo } =
-      user;
+    const { _id, name, email, photo, phone, bio } = user;
     res.status(201).json({
+      _id,
       name,
-      dob,
-      gender,
-      phone,
-      bio,
-      city,
-      userType,
       email,
       photo,
+      phone,
+      bio,
       token,
     });
   } else {
@@ -62,109 +69,33 @@ exports.addtUser = asyncHandler(async (req, res) => {
   }
 });
 
-// Get user info
-exports.getUser = asyncHandler(async (req, res) => {
-  let { id } = req.params;
-  const user = await User.findById(id);
-  if (user) {
-    const { name, dob, gender, city, phone, bio, userType, email, photo } =
-      user;
-    res.status(201).json({
-      name,
-      dob,
-      gender,
-      phone,
-      city,
-      bio,
-      userType,
-      email,
-      photo,
-    });
-  } else {
-    res.status(400);
-    throw new Error("Invalid user data");
-  }
-});
-
-// Get all users
-exports.getUsers = asyncHandler(async (req, res) => {
-  const users = await User.find({});
-  res.status(200).json({ count: users.length, users });
-});
-
-// Edit user
-exports.edittUser = asyncHandler(async (req, res) => {
-  const user = await User.findById(req.user._id);
-
-  if (user) {
-    const { name, dob, gender, phone, bio, userType, email, photo } = user;
-    user.email = email;
-    user.name = req.body.name || name;
-    user.gender = req.body.gender || gender;
-    user.dob = req.body.dob || dob;
-    user.userType = req.body.userType || userType;
-    user.phone = req.body.phone || phone;
-    user.bio = req.body.bio || bio;
-    user.photo = req.body.photo || photo;
-
-    const updatedUser = await user.save();
-    res.status(200).json({
-      _id: updatedUser._id,
-      name: updatedUser.name,
-      gender: updatedUser.gender,
-      dob: updatedUser.dob,
-      userType: updatedUser.userType,
-      email: updatedUser.email,
-      photo: updatedUser.photo,
-      phone: updatedUser.phone,
-      bio: updatedUser.bio,
-    });
-  } else {
-    res.status(404);
-    throw new Error("User not found");
-  }
-});
-
-// Delete user
-exports.deltUser = asyncHandler(async (req, res) => {
-  let { id } = req.params;
-  const result = await User.findByIdAndDelete(id);
-  if (result) {
-    res.status(200).json(result);
-  } else {
-    res.status(404);
-    throw new Error("User not found");
-  }
-});
-
-// Login user
-exports.login = asyncHandler(async (req, res) => {
+// Login User
+const loginUser = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
+
+  // Validate Request
   if (!email || !password) {
     res.status(400);
-    throw new Error("Email and password are required.");
+    throw new Error("Please add email and password");
   }
 
-  // Email auth
-  const user = await User.findOne({ email: email });
+  // Check if user exists
+  const user = await User.findOne({ email });
+
   if (!user) {
     res.status(400);
-    throw new Error("User not found");
+    throw new Error("User not found, please signup");
   }
 
-  // Password auth
-  const verified = await bcrypt.compare(password, user.password);
-  if (!verified) {
-    res.status(400);
-    throw new Error("Wrong Email or Password.");
-  }
+  // User exists, check if password is correct
+  const passwordIsCorrect = await bcrypt.compare(password, user.password);
 
   //   Generate Token
   const token = generateToken(user._id);
 
-  if (verified) {
+  if (passwordIsCorrect) {
     // Send HTTP-only cookie
-    res.cookie("artikonToken", token, {
+    res.cookie("token", token, {
       path: "/",
       httpOnly: true,
       expires: new Date(Date.now() + 1000 * 86400), // 1 day
@@ -172,19 +103,15 @@ exports.login = asyncHandler(async (req, res) => {
       secure: true,
     });
   }
-  if (user && verified) {
-    const { _id, name, email, photo,city, phone, bio, dob, userType, gender } = user;
+  if (user && passwordIsCorrect) {
+    const { _id, name, email, photo, phone, bio } = user;
     res.status(200).json({
       _id,
       name,
-      dob,
-      gender,
-      phone,
-      city,
-      bio,
-      userType,
       email,
       photo,
+      phone,
+      bio,
       token,
     });
   } else {
@@ -194,8 +121,8 @@ exports.login = asyncHandler(async (req, res) => {
 });
 
 // Logout User
-exports.logout = asyncHandler(async (req, res) => {
-  res.cookie("artikonToken", "", {
+const logout = asyncHandler(async (req, res) => {
+  res.cookie("token", "", {
     path: "/",
     httpOnly: true,
     expires: new Date(0),
@@ -205,9 +132,29 @@ exports.logout = asyncHandler(async (req, res) => {
   return res.status(200).json({ message: "Successfully Logged Out" });
 });
 
+// Get User Data
+const getUser = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user._id);
+
+  if (user) {
+    const { _id, name, email, photo, phone, bio } = user;
+    res.status(200).json({
+      _id,
+      name,
+      email,
+      photo,
+      phone,
+      bio,
+    });
+  } else {
+    res.status(400);
+    throw new Error("User Not Found");
+  }
+});
+
 // Get Login Status
-exports.loginStatus = asyncHandler(async (req, res) => {
-  const token = req.cookies.artikonToken;
+const loginStatus = asyncHandler(async (req, res) => {
+  const token = req.cookies.token;
   if (!token) {
     return res.json(false);
   }
@@ -219,8 +166,34 @@ exports.loginStatus = asyncHandler(async (req, res) => {
   return res.json(false);
 });
 
-// Change password
-exports.changePassword = asyncHandler(async (req, res) => {
+// Update User
+const updateUser = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user._id);
+
+  if (user) {
+    const { name, email, photo, phone, bio } = user;
+    user.email = email;
+    user.name = req.body.name || name;
+    user.phone = req.body.phone || phone;
+    user.bio = req.body.bio || bio;
+    user.photo = req.body.photo || photo;
+
+    const updatedUser = await user.save();
+    res.status(200).json({
+      _id: updatedUser._id,
+      name: updatedUser.name,
+      email: updatedUser.email,
+      photo: updatedUser.photo,
+      phone: updatedUser.phone,
+      bio: updatedUser.bio,
+    });
+  } else {
+    res.status(404);
+    throw new Error("User not found");
+  }
+});
+
+const changePassword = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user._id);
   const { oldPassword, password } = req.body;
 
@@ -248,10 +221,15 @@ exports.changePassword = asyncHandler(async (req, res) => {
   }
 });
 
+const forgotPassword2 = asyncHandler(async (req, res) => {
+  console.log(req.body);
+ })
+
 // Forgot password
-exports.forgotPassword = asyncHandler(async (req, res) => {
+const forgotPassword = asyncHandler(async (req, res) => {
   const { email } = req.body;
-  const user = await User.findOne({ email });
+  console.log(email);
+  const user = await User.findOne({ email: email });
 
   if (!user) {
     res.status(404);
@@ -283,18 +261,18 @@ exports.forgotPassword = asyncHandler(async (req, res) => {
   }).save();
 
   // Construct Reset Url
-  const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
+  const resetUrl = `${process.env.FRONTEND_URL}/resetpassword/${resetToken}`;
 
   // Reset Email
   const message = `
-      <h2>Hello, ${user.name}</h2>
-      <p>Please use the url below to reset your password</p>  
+      <h2>Hello ${user.name}</h2>
+      <p>Please use the url below to reset your password</p>
       <p>This reset link is valid for only 30minutes.</p>
 
       <a href=${resetUrl} clicktracking=off>${resetUrl}</a>
 
       <p>Regards...</p>
-      <p>Artikon Team</p>
+      <p>Pinvent Team</p>
     `;
   const subject = "Password Reset Request";
   const send_to = user.email;
@@ -310,7 +288,7 @@ exports.forgotPassword = asyncHandler(async (req, res) => {
 });
 
 // Reset Password
-exports.resetPassword = asyncHandler(async (req, res) => {
+const resetPassword = asyncHandler(async (req, res) => {
   const { password } = req.body;
   const { resetToken } = req.params;
 
@@ -327,7 +305,7 @@ exports.resetPassword = asyncHandler(async (req, res) => {
     token: hashedToken,
     expiresAt: { $gt: Date.now() },
   });
-  console.log(userToken);
+
   if (!userToken) {
     res.status(404);
     throw new Error("Invalid or Expired Token");
@@ -341,3 +319,16 @@ exports.resetPassword = asyncHandler(async (req, res) => {
     message: "Password Reset Successful, Please Login",
   });
 });
+
+module.exports = {
+  registerUser,
+  loginUser,
+  logout,
+  getUser,
+  loginStatus,
+  updateUser,
+  changePassword,
+  forgotPassword,
+  resetPassword,
+  forgotPassword2,
+};

@@ -19,6 +19,7 @@ const userInfo = asyncHandler(async (req, res, next) => {
       res.status(401);
       throw new Error("User not found");
     }
+
     req.user = user;
     next();
   } catch (error) {

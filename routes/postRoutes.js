@@ -1,4 +1,4 @@
-const postRouter = require("express").Router();
+const router = require("express").Router();
 const userInfo = require("../middleWare/authMiddleware");
 const {
   createPost,
@@ -11,14 +11,14 @@ const {
   deletePost,
 } = require("../controllers/postController");
 
-postRouter.get("/all-posts", allPosts);
-postRouter.get("/my-posts", myPosts);
-// postRouter.get("/user/:id", getUser);
-postRouter.post("/create-post", userInfo , createPost);
-postRouter.put("/edit-post/:id", userInfo, editPost);
-postRouter.put("/add-like/:id", userInfo, addLike);
-postRouter.put("/remove-like/:id", userInfo, removeLike);
-postRouter.put("/comment/:id", userInfo, addComment);
-postRouter.delete("/delete-post/:id", userInfo, deletePost);
+router.get("/all-posts", allPosts);
+router.get("/my-posts", myPosts);
+// router.get("/user/:id", getUser);
+router.post("/create-post", userInfo, createPost);
+router.put("/edit-post/:id", userInfo, editPost);
+router.put("/add-like/:id", userInfo, addLike);
+router.put("/remove-like/:id", userInfo, removeLike);
+router.put("/comment/:id", userInfo, addComment);
+router.delete("/delete-post/:id", userInfo, deletePost);
 
-module.exports = postRouter;
+module.exports = router;

@@ -1,4 +1,4 @@
-const userRouter = require("express").Router();
+const router = require("express").Router();
 const userInfo = require("../middleWare/authMiddleware");
 const {
   deltUser,
@@ -13,20 +13,21 @@ const {
   forgotPassword,
   resetPassword,
 } = require("../controllers/userController");
+const { forgotPassword2 } = require("../controllers/userController copy");
 
-userRouter.get("/all-users", getUsers);
-userRouter.get("/user/:id", getUser);
-userRouter.post("/add-user", addtUser);
-userRouter.put("/edit-user", userInfo, edittUser);
-userRouter.delete("/delete-user/:id", deltUser);
+router.get("/all-users", getUsers);
+router.get("/user/:id", getUser);
+router.post("/add-user", addtUser);
+router.put("/edit-user", userInfo, edittUser);
+router.delete("/delete-user/:id", deltUser);
 
 // Auth
-userRouter.post("/login", login);
-userRouter.get("/logout", logout);
-userRouter.get("/login-status", loginStatus);
+router.post("/login", login);
+router.get("/logout", logout);
+router.get("/login-status", loginStatus);
 
-userRouter.post("/change-password", userInfo, changePassword);
-userRouter.post("/forgot-password", forgotPassword);
-userRouter.post("/reset-password/:resetToken", resetPassword);
+router.post("/change-password", userInfo, changePassword);
+router.post("/forgot-password", forgotPassword);
+router.put("/reset-password/:resetToken", resetPassword);
 
-module.exports = userRouter;
+module.exports = router;
