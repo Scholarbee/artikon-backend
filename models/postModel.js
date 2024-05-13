@@ -7,15 +7,19 @@ const postSchema = new mongoose.Schema(
       type: String,
       required: [true, "title is required"],
     },
-    content: {
+    businessType: {
       type: String,
-      required: [true, "content is required"],
+      required: [true, "businessType is required"],
+    },
+    description: {
+      type: String,
+      required: [true, "decription is required"],
     },
     postedBy: {
       type: ObjectId,
       ref: "User",
     },
-    image: {
+    coverPhoto: {
       url: String,
       public_id: String,
     },

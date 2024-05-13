@@ -1,3 +1,4 @@
+const cloudinary = require("../utils/cloudinary");
 const expressAsyncHandler = require("express-async-handler");
 const User = require("../models/userModel");
 const Post = require("../models/postModel");
@@ -6,30 +7,35 @@ const bcrypt = require("bcryptjs");
 const Token = require("../models/tokenModel");
 const crypto = require("crypto");
 const sendEmail = require("../utils/sendEmail");
+const Multer = require("multer");
+
+const storage = new Multer.memoryStorage();
+const upload = Multer({
+  storage,
+});
 
 // Create post
 exports.createPost = expressAsyncHandler(async (req, res, next) => {
-  const { title, content, image } = req.body;
+  const { title, description, businessType } = req.body;
 
-  //upload image in cloudinary
-  //   const result = await cloudinary.uploader.upload(image, {
-  //     folder: "artikon",
-  //     width: 1200,
-  //     crop: "scale",
-  //   });
+  // upload image in cloudinary
+  const b64 = Buffer.from(req.file.buffer).toString("base64");
+  let dataURI = "data:" + req.file.mimetype + ";base64," + b64;
+  const result = await cloudinary.handleUpload(dataURI);
 
-  //   if (!result) {
-  //     res.status(500);
-  //     throw new Error("Unable to save image");
-  //   }
+  if (!result) {
+    res.status(400);
+    throw new Error("Unable to save image to cloudinary");
+  }
   const post = await Post.create({
     title,
-    content,
+    description,
+    businessType,
     postedBy: req.user._id,
-    // image: {
-    //   public_id: result.public_id,
-    //   url: result.secure_url,
-    // },
+    coverPhoto: {
+      public_id: result.public_id,
+      url: result.secure_url,
+    },
   });
   if (post) {
     res.status(201).json({
@@ -40,6 +46,13 @@ exports.createPost = expressAsyncHandler(async (req, res, next) => {
     res.status(400);
     throw new Error("Invalid user data");
   }
+});
+
+// Get my posts
+exports.myPosts = expressAsyncHandler(async (req, res) => {
+  const posts = await Post.find({ postedBy: req.user.id }).sort("-createdAt");
+  // console.log(posts);
+  res.status(200).json(posts);
 });
 
 // Update post
@@ -116,10 +129,12 @@ exports.allPosts = expressAsyncHandler(async (req, res) => {
   res.send("All posts");
 });
 
-// Get post by user id (My posts)
-exports.myPosts = expressAsyncHandler(async (req, res) => {
-  res.send("My posts");
-});
+
+
+// // Get post by user id (My posts)
+// exports.myPosts = expressAsyncHandler(async (req, res) => {
+//   res.send("My posts");
+// });
 
 //add comment
 exports.addComment = async (req, res, next) => {

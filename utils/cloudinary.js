@@ -6,4 +6,16 @@ cloudinary.config({
   api_secret: process.env.CLOUD_KEY_SECRET,
 });
 
-module.exports = cloudinary;
+exports.handleUpload = async (file) => {
+  const res = await cloudinary.uploader.upload(file, {
+    resource_type: "auto",
+    folder: "artikon",
+    width: 1200,
+    crop: "scale",
+  });
+  return res;
+};
+
+
+
+// module.exports = cloudinary;
