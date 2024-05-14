@@ -64,12 +64,13 @@ exports.addtUser = asyncHandler(async (req, res) => {
 
 // Get user info
 exports.getUser = asyncHandler(async (req, res) => {
-  let { id } = req.params;
-  const user = await User.findById(id);
+  // let { id } = req.params;
+  const user = await User.findById(req.user._id);
   if (user) {
-    const { name, dob, gender, city, phone, bio, userType, email, photo } =
+    const {_id, name, dob, gender, city, phone, bio, userType, email, photo } =
       user;
     res.status(201).json({
+      _id,
       name,
       dob,
       gender,

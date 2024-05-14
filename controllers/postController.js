@@ -55,6 +55,13 @@ exports.myPosts = expressAsyncHandler(async (req, res) => {
   res.status(200).json(posts);
 });
 
+// Get all posts
+exports.allPosts = expressAsyncHandler(async (req, res) => {
+  const posts = await Post.find({}).sort("-createdAt");
+  // console.log(posts);
+  res.status(200).json(posts);
+});
+
 // Update post
 exports.editPost = expressAsyncHandler(async (req, res) => {
   const { title, content, image } = req.body;
@@ -123,13 +130,6 @@ exports.deletePost = expressAsyncHandler(async (req, res, next) => {
     throw new Error("Post not found");
   }
 });
-
-// Get all posts
-exports.allPosts = expressAsyncHandler(async (req, res) => {
-  res.send("All posts");
-});
-
-
 
 // // Get post by user id (My posts)
 // exports.myPosts = expressAsyncHandler(async (req, res) => {

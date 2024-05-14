@@ -16,7 +16,7 @@ const {
 const { forgotPassword2 } = require("../controllers/userController copy");
 
 router.get("/all-users", getUsers);
-router.get("/user/:id", getUser);
+router.get("/user", userInfo, getUser);
 router.post("/add-user", addtUser);
 router.put("/edit-user", userInfo, edittUser);
 router.delete("/delete-user/:id", deltUser);
