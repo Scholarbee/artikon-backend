@@ -62,6 +62,28 @@ exports.allPosts = expressAsyncHandler(async (req, res) => {
   res.status(200).json(posts);
 });
 
+// Get post by id
+exports.getPost = expressAsyncHandler(async (req, res) => {
+   const post = await Post.findById(req.params.id).populate(
+     "comments.postedBy",
+     "name"
+  );
+  if (post) {
+    res.status(200).json({
+      success: true,
+      post,
+    });
+  } else {
+    res.status(400);
+    throw new Error("Error");
+  }
+  //  res.status(200).json({
+  //    success: true,
+  //    post,
+  //  });
+  //  next(error);
+});
+
 // Update post
 exports.editPost = expressAsyncHandler(async (req, res) => {
   const { title, content, image } = req.body;
@@ -139,6 +161,7 @@ exports.deletePost = expressAsyncHandler(async (req, res, next) => {
 //add comment
 exports.addComment = async (req, res, next) => {
   const { comment } = req.body;
+  // console.log(req.body);
   const postComment = await Post.findByIdAndUpdate(
     req.params.id,
     {
@@ -211,28 +234,28 @@ exports.removeLike = async (req, res, next) => {
   }
 };
 
-//add comment
-exports.addComment = async (req, res, next) => {
-  const { comment } = req.body;
-  const postComment = await Post.findByIdAndUpdate(
-    req.params.id,
-    {
-      $push: { comments: { text: comment, postedBy: req.user._id } },
-    },
-    { new: true }
-  );
-  const post = await Post.findById(postComment._id).populate(
-    "comments.postedBy",
-    "name email"
-  );
+// //add comment
+// exports.addComment = async (req, res, next) => {
+//   const { comment } = req.body;
+//   const postComment = await Post.findByIdAndUpdate(
+//     req.params.id,
+//     {
+//       $push: { comments: { text: comment, postedBy: req.user._id } },
+//     },
+//     { new: true }
+//   );
+//   const post = await Post.findById(postComment._id).populate(
+//     "comments.postedBy",
+//     "name email"
+//   );
 
-  if (post) {
-    res.status(200).json({
-      success: true,
-      post,
-    });
-  } else {
-    res.status(400);
-    throw new Error("Error");
-  }
-};
+//   if (post) {
+//     res.status(200).json({
+//       success: true,
+//       post,
+//     });
+//   } else {
+//     res.status(400);
+//     throw new Error("Error");
+//   }
+// };

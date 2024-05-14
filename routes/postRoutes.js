@@ -9,6 +9,7 @@ const {
   removeLike,
   addComment,
   deletePost,
+  getPost,
 } = require("../controllers/postController");
 const Multer = require("multer");
 
@@ -18,12 +19,13 @@ const upload = Multer({
 });
 
 router.get("/all-posts", allPosts);
+router.get("/post/:id", getPost);
 router.get("/my-posts", userInfo, myPosts);
 router.post("/create-post", upload.single("my_file"), userInfo, createPost);
 router.put("/edit-post/:id", userInfo, editPost);
 router.put("/add-like/:id", userInfo, addLike);
 router.put("/remove-like/:id", userInfo, removeLike);
-router.put("/comment/:id", userInfo, addComment);
+router.put("/add-comment/:id", userInfo, addComment);
 router.delete("/delete-post/:id", userInfo, deletePost);
 
 module.exports = router;
