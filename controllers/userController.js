@@ -284,7 +284,7 @@ exports.forgotPassword = asyncHandler(async (req, res) => {
   }).save();
 
   // Construct Reset Url
-  const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
+  const resetUrl = `${process.env.FRONTEND_URL}/#/reset-password/${resetToken}`;
 
   // Reset Email
   const message = `
