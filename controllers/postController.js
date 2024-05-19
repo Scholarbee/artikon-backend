@@ -64,9 +64,9 @@ exports.allPosts = expressAsyncHandler(async (req, res) => {
 
 // Get post by id
 exports.getPost = expressAsyncHandler(async (req, res) => {
-   const post = await Post.findById(req.params.id).populate(
-     "comments.postedBy",
-     "name"
+  const post = await Post.findById(req.params.id).populate(
+    "comments.postedBy",
+    "name"
   );
   if (post) {
     res.status(200).json({
@@ -77,11 +77,19 @@ exports.getPost = expressAsyncHandler(async (req, res) => {
     res.status(400);
     throw new Error("Error");
   }
-  //  res.status(200).json({
-  //    success: true,
-  //    post,
-  //  });
-  //  next(error);
+});
+// Get post info by id
+exports.getPostInfo = expressAsyncHandler(async (req, res) => {
+  const post = await Post.findById(req.params.id).populate("postedBy", "name city phone email");
+  if (post) {
+    res.status(200).json({
+      success: true,
+      post,
+    });
+  } else {
+    res.status(400);
+    throw new Error("Error");
+  }
 });
 
 // Update post

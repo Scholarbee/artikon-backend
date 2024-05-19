@@ -13,8 +13,18 @@ const generateToken = (id) => {
 
 // Sign Up
 exports.addtUser = asyncHandler(async (req, res) => {
-  const { name, dob, gender, city, phone, bio, userType, email, password, photo } =
-    req.body;
+  const {
+    name,
+    dob,
+    gender,
+    city,
+    phone,
+    bio,
+    userType,
+    email,
+    password,
+    photo,
+  } = req.body;
 
   if (!name || !email || !password) {
     res.status(400);
@@ -42,8 +52,18 @@ exports.addtUser = asyncHandler(async (req, res) => {
   });
 
   if (user) {
-    const { name, dob, gender,city, phone, bio, userType, email, password, photo } =
-      user;
+    const {
+      name,
+      dob,
+      gender,
+      city,
+      phone,
+      bio,
+      userType,
+      email,
+      password,
+      photo,
+    } = user;
     res.status(201).json({
       name,
       dob,
@@ -67,7 +87,7 @@ exports.getUser = asyncHandler(async (req, res) => {
   // let { id } = req.params;
   const user = await User.findById(req.user._id);
   if (user) {
-    const {_id, name, dob, gender, city, phone, bio, userType, email, photo } =
+    const { _id, name, dob, gender, city, phone, bio, userType, email, photo } =
       user;
     res.status(201).json({
       _id,
@@ -174,7 +194,8 @@ exports.login = asyncHandler(async (req, res) => {
     });
   }
   if (user && verified) {
-    const { _id, name, email, photo,city, phone, bio, dob, userType, gender } = user;
+    const { _id, name, email, photo, city, phone, bio, dob, userType, gender } =
+      user;
     res.status(200).json({
       _id,
       name,

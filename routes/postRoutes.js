@@ -10,6 +10,7 @@ const {
   addComment,
   deletePost,
   getPost,
+  getPostInfo,
 } = require("../controllers/postController");
 const Multer = require("multer");
 
@@ -20,6 +21,7 @@ const upload = Multer({
 
 router.get("/all-posts", allPosts);
 router.get("/post/:id", getPost);
+router.get("/post-info/:id", getPostInfo);
 router.get("/my-posts", userInfo, myPosts);
 router.post("/create-post", upload.single("my_file"), userInfo, createPost);
 router.put("/edit-post/:id", userInfo, editPost);
