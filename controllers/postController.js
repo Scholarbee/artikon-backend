@@ -78,9 +78,13 @@ exports.getPost = expressAsyncHandler(async (req, res) => {
     throw new Error("Error");
   }
 });
+
 // Get post info by id
 exports.getPostInfo = expressAsyncHandler(async (req, res) => {
-  const post = await Post.findById(req.params.id).populate("postedBy", "name city phone email");
+  const post = await Post.findById(req.params.id).populate(
+    "postedBy",
+    "name city phone email"
+  );
   if (post) {
     res.status(200).json({
       success: true,
@@ -161,11 +165,6 @@ exports.deletePost = expressAsyncHandler(async (req, res, next) => {
   }
 });
 
-// // Get post by user id (My posts)
-// exports.myPosts = expressAsyncHandler(async (req, res) => {
-//   res.send("My posts");
-// });
-
 //add comment
 exports.addComment = async (req, res, next) => {
   const { comment } = req.body;
@@ -242,28 +241,100 @@ exports.removeLike = async (req, res, next) => {
   }
 };
 
-// //add comment
-// exports.addComment = async (req, res, next) => {
-//   const { comment } = req.body;
-//   const postComment = await Post.findByIdAndUpdate(
-//     req.params.id,
-//     {
-//       $push: { comments: { text: comment, postedBy: req.user._id } },
-//     },
-//     { new: true }
-//   );
-//   const post = await Post.findById(postComment._id).populate(
-//     "comments.postedBy",
-//     "name email"
-//   );
+// // Get post by user id (My posts)
+exports.bookAppointment = expressAsyncHandler(async (req, res) => {
+  const { phone, address, appointmnetDate } = req.body;
+  const newDate = new Date(appointmnetDate);
 
-//   if (post) {
-//     res.status(200).json({
-//       success: true,
-//       post,
-//     });
-//   } else {
-//     res.status(400);
-//     throw new Error("Error");
-//   }
-// };
+  console.log(req.body);
+  console.log(newDate);
+  const bookedAppointment = await Post.findByIdAndUpdate(
+    req.params.id,
+    {
+      $push: {
+        appointments: {
+          bookedBy: req.user._id,
+          phone: phone,
+          // appointmentDate: newDate,
+          address: address,
+        },
+      },
+    },
+    { new: true }
+  );
+
+  if (bookedAppointment) {
+    res.status(200).json({
+      success: true,
+      bookedAppointment,
+    });
+  } else {
+    res.status(400);
+    throw new Error("Error");
+  }
+});
+
+exports.placeOrder = expressAsyncHandler(async (req, res) => {
+  const { phone, address, quantity, ownerName, ownerEmail, ownerPhone } =
+    req.body;
+  const ordered = await Post.findByIdAndUpdate(
+    req.params.id,
+    {
+      $push: {
+        orders: {
+          orderedBy: req.user._id,
+          phone,
+          address,
+          quantity: parseInt(quantity),
+        },
+      },
+    },
+    { new: true }
+  );
+  // Sending Email after placing order
+  const message1 = `
+      <h2>Hello, ${req.user.name}</h2>
+      <p>Please your order request has been sent to ${ownerName}, the owner of the brand.</p>  
+      <p>Visit ArtiKon official website for more info.</p>
+      <p>You can also call ${ownerName} on ${ownerPhone} for follow-ups.</p>
+
+      <a href="https://artikon-alx-2qcy.onrender.com" clicktracking=off>"https://artikon-alx-2qcy.onrender.com"</a>
+
+      <p>Regards...</p>
+      <p>Artikon Team</p>
+    `;
+  const message2 = `
+      <h2>Hello, ${ownerName}</h2>
+      <p>Please your have received new order(s) from ${req.user.name}.</p>  
+      <p>Visit ArtiKon official website for more info.</p>
+
+      <a href="https://artikon-alx-2qcy.onrender.com" clicktracking=off>"https://artikon-alx-2qcy.onrender.com"</a>
+
+      <p>Regards...</p>
+      <p>Artikon Team</p>
+    `;
+  const subject1 = "Placement Of Order(s)";
+  const subject2 = "New Order(s)";
+  const send_to1 = req.user.email;
+  const send_to2 = ownerEmail;
+  const sent_from = process.env.EMAIL_USER;
+
+  try {
+    await sendEmail(subject1, message1, send_to1, sent_from);
+    await sendEmail(subject2, message2, send_to2, sent_from);
+    res.status(200).json({ success: true, ordered });
+  } catch (error) {
+    res.status(500);
+    throw new Error("Email not sent, please try again");
+  }
+
+  // if (ordered) {
+  //   res.status(200).json({
+  //     success: true,
+  //     ordered,
+  //   });
+  // } else {
+  //   res.status(400);
+  //   throw new Error("Error");
+  // }
+});

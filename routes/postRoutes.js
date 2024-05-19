@@ -11,6 +11,8 @@ const {
   deletePost,
   getPost,
   getPostInfo,
+  bookAppointment,
+  placeOrder,
 } = require("../controllers/postController");
 const Multer = require("multer");
 
@@ -29,5 +31,8 @@ router.put("/add-like/:id", userInfo, addLike);
 router.put("/remove-like/:id", userInfo, removeLike);
 router.put("/add-comment/:id", userInfo, addComment);
 router.delete("/delete-post/:id", userInfo, deletePost);
+
+router.put("/post/book-appointment/:id", userInfo, bookAppointment);
+router.put("/post/place-order/:id", userInfo, placeOrder);
 
 module.exports = router;
