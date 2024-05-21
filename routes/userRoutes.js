@@ -12,13 +12,16 @@ const {
   changePassword,
   forgotPassword,
   resetPassword,
+  unblockUser,
+  blockUser,
 } = require("../controllers/userController");
-const { forgotPassword2 } = require("../controllers/userController copy");
 
-router.get("/all-users", getUsers);
+router.get("/", userInfo, getUsers);
 router.get("/user", userInfo, getUser);
 router.post("/add-user", addtUser);
 router.put("/edit-user", userInfo, edittUser);
+router.put("/block-user/:id", blockUser);
+router.put("/unblock-user/:id", unblockUser);
 router.delete("/delete-user/:id", deltUser);
 
 // Auth

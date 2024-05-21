@@ -110,7 +110,7 @@ exports.getUser = asyncHandler(async (req, res) => {
 // Get all users
 exports.getUsers = asyncHandler(async (req, res) => {
   const users = await User.find({});
-  res.status(200).json({ count: users.length, users });
+  res.status(200).json({ success: true, users });
 });
 
 // Edit user
@@ -151,7 +151,7 @@ exports.deltUser = asyncHandler(async (req, res) => {
   let { id } = req.params;
   const result = await User.findByIdAndDelete(id);
   if (result) {
-    res.status(200).json(result);
+    res.status(200).json({ success: true, result });
   } else {
     res.status(404);
     throw new Error("User not found");
@@ -362,4 +362,36 @@ exports.resetPassword = asyncHandler(async (req, res) => {
   res.status(200).json({
     message: "Password Reset Successful, Please Login",
   });
+});
+
+// Block user
+exports.blockUser = asyncHandler(async (req, res) => {
+  let { id } = req.params;
+  const result = await User.findByIdAndUpdate(
+    id,
+    { isActive: false },
+    { new: true }
+  );
+  if (result) {
+    res.status(200).json({ success: true, result });
+  } else {
+    res.status(404);
+    throw new Error("User not found");
+  }
+});
+
+// Unblock user
+exports.unblockUser = asyncHandler(async (req, res) => {
+  let { id } = req.params;
+  const result = await User.findByIdAndUpdate(
+    id,
+    { isActive: true },
+    { new: true }
+  );
+  if (result) {
+    res.status(200).json({ success: true, result });
+  } else {
+    res.status(404);
+    throw new Error("User not found");
+  }
 });
