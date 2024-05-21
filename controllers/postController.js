@@ -327,14 +327,70 @@ exports.placeOrder = expressAsyncHandler(async (req, res) => {
     res.status(500);
     throw new Error("Email not sent, please try again");
   }
-
-  // if (ordered) {
-  //   res.status(200).json({
-  //     success: true,
-  //     ordered,
-  //   });
-  // } else {
-  //   res.status(400);
-  //   throw new Error("Error");
-  // }
 });
+
+/**
+ * Find posts created by the user
+ * And extract all appointments from the found posts
+ *
+ * @param {*} req
+ * @param {*} res
+ */
+exports.getUserReceivedAppointments = async (req, res) => {
+  // Find posts created by the user
+  const posts = await Post.find({ postedBy: req.user._id }, "appointments")
+    .populate("appointments.bookedBy", "name")
+    .select("appointments title");
+  // .select("appointments");
+
+  // Extract all appointments from the found posts
+  const appointments = posts.flatMap((post) =>
+    post.appointments.map((appointment) => ({
+      ...appointment.toObject(), // Convert Mongoose document to plain object
+      postTitle: post.title,
+    }))
+  );
+
+  if (posts && appointments) {
+    res.status(200).json({
+      success: true,
+      appointments,
+    });
+  } else {
+    res.status(400);
+    throw new Error("Error");
+  }
+};
+
+/**
+ * Find posts created by the user
+ * And extract all oders from the found posts
+ *
+ * @param {*} req
+ * @param {*} res
+ */
+exports.getUserReceivedOrders = async (req, res) => {
+  // Find posts created by the user
+  const posts = await Post.find({ postedBy: req.user._id }, "orders")
+    .populate("orders.orderedBy", "name")
+    .select("orders title");
+  // .select("appointments");
+
+  // Extract all appointments from the found posts
+  const orders = posts.flatMap((post) =>
+    post.orders.map((order) => ({
+      ...order.toObject(), // Convert Mongoose document to plain object
+      postTitle: post.title,
+    }))
+  );
+
+  if (posts && orders) {
+    res.status(200).json({
+      success: true,
+      orders,
+    });
+  } else {
+    res.status(400);
+    throw new Error("Error");
+  }
+};

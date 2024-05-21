@@ -42,6 +42,7 @@ const postSchema = new mongoose.Schema(
         },
         phone: { type: String },
         address: { type: String },
+        status: { type: Number, default: 0 },
         createdAt: { type: Date, default: Date.now },
         appointmentDate: { type: Date, default: Date.now },
       },

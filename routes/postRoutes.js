@@ -13,6 +13,8 @@ const {
   getPostInfo,
   bookAppointment,
   placeOrder,
+  getUserReceivedAppointments,
+  getUserReceivedOrders,
 } = require("../controllers/postController");
 const Multer = require("multer");
 
@@ -34,5 +36,7 @@ router.delete("/delete-post/:id", userInfo, deletePost);
 
 router.put("/post/book-appointment/:id", userInfo, bookAppointment);
 router.put("/post/place-order/:id", userInfo, placeOrder);
+router.get("/received-appointments", userInfo, getUserReceivedAppointments);
+router.get("/received-orders", userInfo, getUserReceivedOrders);
 
 module.exports = router;
