@@ -447,12 +447,12 @@ exports.unblockPost = expressAsyncHandler(async (req, res) => {
     { isActive: true },
     { new: true }
   );
-  
+
   // Reset Email
   const message = `
       <h2>Hello, ${ownerName}</h2>
       <p>Please your post with the title ${postTitle} & ref ${id} has been unblocked</p>  
-      <p>For more visit ArtiKon official website</p>
+      <p>For more info, visit ArtiKon official website</p>
 
       <a href="https://artikon-alx-2qcy.onrender.com" clicktracking=off>Click here to visit the site</a>
 
