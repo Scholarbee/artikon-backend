@@ -57,9 +57,18 @@ exports.myPosts = expressAsyncHandler(async (req, res) => {
 
 // Get all posts
 exports.allPosts = expressAsyncHandler(async (req, res) => {
-  const posts = await Post.find({}).sort("-createdAt");
+  const posts = await Post.find({ isActive: true }).sort("-createdAt");
   // console.log(posts);
   res.status(200).json(posts);
+});
+
+// Get all posts
+exports.getPosts = expressAsyncHandler(async (req, res) => {
+  const posts = await Post.find({})
+    .populate("postedBy", "name email")
+    .sort("-createdAt");
+  // console.log(posts);
+  res.status(200).json({ success: true, posts });
 });
 
 // Get post by id
@@ -394,3 +403,60 @@ exports.getUserReceivedOrders = async (req, res) => {
     throw new Error("Error");
   }
 };
+
+// Block user
+exports.blockPost = expressAsyncHandler(async (req, res) => {
+  const { phone, address, postTitle, ownerName, ownerEmail, ownerPhone } =
+    req.body;
+  let { id } = req.params;
+  const result = await Post.findByIdAndUpdate(
+    id,
+    { isActive: false },
+    { new: true }
+  );
+  // Reset Email
+  const message = `
+      <h2>Hello, ${ownerName}</h2>
+      <p>Please your post with the title ${postTitle} & ref ${id} has been blocked</p>  
+      <p>If you think this is wrong, please file a report to the system administrators via the website</p>
+
+      <a href="https://artikon-alx-2qcy.onrender.com" clicktracking=off>Click here to place a report</a>
+
+      <p>Regards...</p>
+      <p>Artikon Team</p>
+    `;
+  const subject = "Password Reset Request";
+  const send_to = ownerEmail;
+  const sent_from = process.env.EMAIL_USER;
+
+  try {
+    await sendEmail(subject, message, send_to, sent_from);
+    res.status(200).json({ success: true, message: "Email Sent" });
+  } catch (error) {
+    res.status(500);
+    throw new Error("Email not sent, please try again");
+  }
+// });
+  // if (result) {
+  //   res.status(200).json({ success: true, result });
+  // } else {
+  //   res.status(404);
+  //   throw new Error("Post not found");
+  // }
+});
+
+// Unblock user
+exports.unblockPost = expressAsyncHandler(async (req, res) => {
+  let { id } = req.params;
+  const result = await Post.findByIdAndUpdate(
+    id,
+    { isActive: true },
+    { new: true }
+  );
+  if (result) {
+    res.status(200).json({ success: true, result });
+  } else {
+    res.status(404);
+    throw new Error("Post not found");
+  }
+});

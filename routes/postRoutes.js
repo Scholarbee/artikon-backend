@@ -15,6 +15,9 @@ const {
   placeOrder,
   getUserReceivedAppointments,
   getUserReceivedOrders,
+  getPosts,
+  blockPost,
+  unblockPost,
 } = require("../controllers/postController");
 const Multer = require("multer");
 
@@ -23,6 +26,7 @@ const upload = Multer({
   storage,
 });
 
+router.get("/", userInfo, getPosts);
 router.get("/all-posts", allPosts);
 router.get("/post/:id", getPost);
 router.get("/post-info/:id", getPostInfo);
@@ -33,6 +37,8 @@ router.put("/add-like/:id", userInfo, addLike);
 router.put("/remove-like/:id", userInfo, removeLike);
 router.put("/add-comment/:id", userInfo, addComment);
 router.delete("/delete-post/:id", userInfo, deletePost);
+router.put("/block-post/:id", blockPost);
+router.put("/unblock-post/:id", unblockPost);
 
 router.put("/post/book-appointment/:id", userInfo, bookAppointment);
 router.put("/post/place-order/:id", userInfo, placeOrder);
