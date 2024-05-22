@@ -425,7 +425,7 @@ exports.blockPost = expressAsyncHandler(async (req, res) => {
       <p>Regards...</p>
       <p>Artikon Team</p>
     `;
-  const subject = "Password Reset Request";
+  const subject = "Post Blocked";
   const send_to = ownerEmail;
   const sent_from = process.env.EMAIL_USER;
 
@@ -436,13 +436,7 @@ exports.blockPost = expressAsyncHandler(async (req, res) => {
     res.status(500);
     throw new Error("Email not sent, please try again");
   }
-// });
-  // if (result) {
-  //   res.status(200).json({ success: true, result });
-  // } else {
-  //   res.status(404);
-  //   throw new Error("Post not found");
-  // }
+  
 });
 
 // Unblock user
@@ -453,10 +447,27 @@ exports.unblockPost = expressAsyncHandler(async (req, res) => {
     { isActive: true },
     { new: true }
   );
-  if (result) {
-    res.status(200).json({ success: true, result });
-  } else {
-    res.status(404);
-    throw new Error("Post not found");
+  
+  // Reset Email
+  const message = `
+      <h2>Hello, ${ownerName}</h2>
+      <p>Please your post with the title ${postTitle} & ref ${id} has been unblocked</p>  
+      <p>For more visit ArtiKon official website</p>
+
+      <a href="https://artikon-alx-2qcy.onrender.com" clicktracking=off>Click here to visit the site</a>
+
+      <p>Regards...</p>
+      <p>Artikon Team</p>
+    `;
+  const subject = "Post Unblocked";
+  const send_to = ownerEmail;
+  const sent_from = process.env.EMAIL_USER;
+
+  try {
+    await sendEmail(subject, message, send_to, sent_from);
+    res.status(200).json({ success: true, message: "Email Sent" });
+  } catch (error) {
+    res.status(500);
+    throw new Error("Email not sent, please try again");
   }
 });
