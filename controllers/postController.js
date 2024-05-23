@@ -252,7 +252,7 @@ exports.removeLike = async (req, res, next) => {
 
 // // Get post by user id (My posts)
 exports.bookAppointment = expressAsyncHandler(async (req, res) => {
-  const { phone, address, appointmnetDate } = req.body;
+  const { phone, address, appointmnetDate, ownerName, ownerEmail } = req.body;
   const newDate = new Date(appointmnetDate);
 
   console.log(req.body);
@@ -272,20 +272,32 @@ exports.bookAppointment = expressAsyncHandler(async (req, res) => {
     { new: true }
   );
 
-  if (bookedAppointment) {
-    res.status(200).json({
-      success: true,
-      bookedAppointment,
-    });
-  } else {
-    res.status(400);
-    throw new Error("Error");
+  const message = `
+      <h2>Hello, ${ownerName}</h2>
+      <p>New Appointment has been booked by ${req.user.name}.</p>  
+      <p>Visit ArtiKon official website for more info.</p>
+
+      <a href="https://artikon-alx-2qcy.onrender.com" clicktracking=off>"https://artikon-alx-2qcy.onrender.com"</a>
+
+      <p>Regards...</p>
+      <p>Artikon Team</p>
+    `;
+  const subject = "Booking Of Appointment";
+  const send_to = ownerEmail;
+  const sent_from = process.env.EMAIL_USER;
+
+  try {
+    await sendEmail(subject, message, send_to, sent_from);
+    res.status(200).json({ success: true });
+  } catch (error) {
+    res.status(500);
+    throw new Error("Email not sent, please try again");
   }
+  // });
 });
 
 exports.placeOrder = expressAsyncHandler(async (req, res) => {
-  const { phone, address, quantity, ownerName, ownerEmail, ownerPhone } =
-    req.body;
+  const { phone, address, quantity, ownerName, ownerEmail } = req.body;
   const ordered = await Post.findByIdAndUpdate(
     req.params.id,
     {
@@ -300,19 +312,9 @@ exports.placeOrder = expressAsyncHandler(async (req, res) => {
     },
     { new: true }
   );
+
   // Sending Email after placing order
-  const message1 = `
-      <h2>Hello, ${req.user.name}</h2>
-      <p>Please your order request has been sent to ${ownerName}, the owner of the brand.</p>  
-      <p>Visit ArtiKon official website for more info.</p>
-      <p>You can also call ${ownerName} on ${ownerPhone} for follow-ups.</p>
-
-      <a href="https://artikon-alx-2qcy.onrender.com" clicktracking=off>"https://artikon-alx-2qcy.onrender.com"</a>
-
-      <p>Regards...</p>
-      <p>Artikon Team</p>
-    `;
-  const message2 = `
+  const message = `
       <h2>Hello, ${ownerName}</h2>
       <p>Please your have received new order(s) from ${req.user.name}.</p>  
       <p>Visit ArtiKon official website for more info.</p>
@@ -322,15 +324,12 @@ exports.placeOrder = expressAsyncHandler(async (req, res) => {
       <p>Regards...</p>
       <p>Artikon Team</p>
     `;
-  const subject1 = "Placement Of Order(s)";
-  const subject2 = "New Order(s)";
-  const send_to1 = req.user.email;
-  const send_to2 = ownerEmail;
+  const subject = "New Order(s)";
+  const send_to = ownerEmail;
   const sent_from = process.env.EMAIL_USER;
 
   try {
-    await sendEmail(subject1, message1, send_to1, sent_from);
-    await sendEmail(subject2, message2, send_to2, sent_from);
+    await sendEmail(subject, message, send_to, sent_from);
     res.status(200).json({ success: true, ordered });
   } catch (error) {
     res.status(500);
@@ -382,7 +381,7 @@ exports.getUserReceivedOrders = async (req, res) => {
   // Find posts created by the user
   const posts = await Post.find({ postedBy: req.user._id }, "orders")
     .populate("orders.orderedBy", "name")
-    .select("orders title");
+    .select("title");
   // .select("appointments");
 
   // Extract all appointments from the found posts
@@ -404,20 +403,90 @@ exports.getUserReceivedOrders = async (req, res) => {
   }
 };
 
+/**
+ * Find orders created by the user
+ * And extract all oders from the found posts
+ *
+ * @param {*} req
+ * @param {*} res
+ */
+exports.getUserPlacedOrders = async (req, res) => {
+  const posts = await Post.find(
+    { "orders.orderedBy": req.user._id },
+    { "orders.$": 1 } // Projection to include only matched orders
+  )
+    .select("postedBy title _id")
+    .populate("postedBy", "name email phone")
+    .sort("-createdAt")
+    .exec();
+
+  // Extract the matched orders
+  const orders = posts.flatMap((post) =>
+    post.orders.map((order) => ({
+      ...order.toObject(), // Convert Mongoose document to plain object
+      postTitle: post.title,
+      postId: post._id,
+      postedBy: post.postedBy,
+    }))
+  );
+
+  if (posts && orders) {
+    res.status(200).json({
+      success: true,
+      orders,
+    });
+  } else {
+    res.status(400);
+    throw new Error("Error");
+  }
+};
+
+exports.getUserBookedAppointments = async (req, res) => {
+  const posts = await Post.find(
+    { "appointments.bookedBy": req.user._id },
+    { "appointments.$": 1 } // Projection to include only matched orders
+  )
+    .select("postedBy title _id")
+    .populate("postedBy", "name email phone")
+    .populate("appointments.bookedBy", "name email phone")
+    .sort("-createdAt")
+    .exec();
+
+  // Extract the matched orders
+  const appointments = posts.flatMap((post) =>
+    post.appointments.map((appointment) => ({
+      ...appointment.toObject(), // Convert Mongoose document to plain object
+      postTitle: post.title,
+      postId: post._id,
+      postedBy: post.postedBy,
+    }))
+  );
+
+  if (posts && appointments) {
+    res.status(200).json({
+      success: true,
+      appointments,
+    });
+  } else {
+    res.status(400);
+    throw new Error("Error");
+  }
+};
+
 // Block user
 exports.blockPost = expressAsyncHandler(async (req, res) => {
-  const { phone, address, postTitle, ownerName, ownerEmail, ownerPhone } =
-    req.body;
+  const { postTitle, ownerName, ownerEmail } = req.body;
   let { id } = req.params;
   const result = await Post.findByIdAndUpdate(
     id,
     { isActive: false },
     { new: true }
   );
-  // Reset Email
+
+  // Send Email
   const message = `
       <h2>Hello, ${ownerName}</h2>
-      <p>Please your post with the title ${postTitle} & ref ${id} has been blocked</p>  
+      <p>Please your post with the title \"${postTitle}\" & Ref \"${id}\" has been blocked</p>  
       <p>If you think this is wrong, please file a report to the system administrators via the website</p>
 
       <a href="https://artikon-alx-2qcy.onrender.com" clicktracking=off>Click here to place a report</a>
@@ -436,11 +505,11 @@ exports.blockPost = expressAsyncHandler(async (req, res) => {
     res.status(500);
     throw new Error("Email not sent, please try again");
   }
-  
 });
 
 // Unblock user
 exports.unblockPost = expressAsyncHandler(async (req, res) => {
+  const { postTitle, ownerName, ownerEmail } = req.body;
   let { id } = req.params;
   const result = await Post.findByIdAndUpdate(
     id,
@@ -448,10 +517,10 @@ exports.unblockPost = expressAsyncHandler(async (req, res) => {
     { new: true }
   );
 
-  // Reset Email
+  // Send Email
   const message = `
       <h2>Hello, ${ownerName}</h2>
-      <p>Please your post with the title ${postTitle} & ref ${id} has been unblocked</p>  
+      <p>Please your post with the title \"${postTitle}\" & Ref \"${id}\" has been unblocked</p>  
       <p>For more info, visit ArtiKon official website</p>
 
       <a href="https://artikon-alx-2qcy.onrender.com" clicktracking=off>Click here to visit the site</a>

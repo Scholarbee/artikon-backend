@@ -18,6 +18,8 @@ const {
   getPosts,
   blockPost,
   unblockPost,
+  getUserPlacedOrders,
+  getUserBookedAppointments,
 } = require("../controllers/postController");
 const Multer = require("multer");
 
@@ -44,5 +46,7 @@ router.put("/post/book-appointment/:id", userInfo, bookAppointment);
 router.put("/post/place-order/:id", userInfo, placeOrder);
 router.get("/received-appointments", userInfo, getUserReceivedAppointments);
 router.get("/received-orders", userInfo, getUserReceivedOrders);
+router.get("/placed-orders", userInfo, getUserPlacedOrders);
+router.get("/booked-appointments", userInfo, getUserBookedAppointments);
 
 module.exports = router;
