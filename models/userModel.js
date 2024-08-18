@@ -7,17 +7,17 @@ const userSchema = mongoose.Schema(
       type: String,
       required: [true, "Please add a name"],
     },
-    gender: {
+    phone: {
       type: String,
-      // required: [true, "Please add gender"],
+      required: [true, "Please add a phone number"],
     },
-    dob: {
-      type: Date,
-      // required: [true, "Please add birth date"],
+    city: {
+      type: String,
+      required: [true, "Please add a phone number"],
     },
     email: {
       type: String,
-      required: [true, "Please add a email"],
+      required: [true, "Please add an email"],
       unique: true,
       trim: true,
       match: [
@@ -29,29 +29,14 @@ const userSchema = mongoose.Schema(
       type: String,
       required: [true, "Please add a password"],
       minLength: [6, "Password must be up to 6 characters"],
-      //   maxLength: [23, "Password must not be more than 23 characters"],
     },
     photo: {
-      type: String,
-      // required: [true, "Please add a photo"],
-      default: "https://i.ibb.co/4pDNDk1/avatar.png",
+      url: String,
+      public_id: String,
     },
-    phone: {
-      type: String,
-      // required: [true, "Please add a phone number"],
-    },
-    city: {
-      type: String,
-      // required: [true, "Please add a phone number"],
-    },
-    userType: {
+    role: {
       type: String,
       default: "user",
-    },
-    bio: {
-      type: String,
-      maxLength: [250, "Bio must not be more than 250 characters"],
-      default: "bio",
     },
     isActive: { type: Boolean, default: true },
   },

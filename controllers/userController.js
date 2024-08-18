@@ -5,6 +5,7 @@ const bcrypt = require("bcryptjs");
 const Token = require("../models/tokenModel");
 const crypto = require("crypto");
 const sendEmail = require("../utils/sendEmail");
+const cloudinary = require("../utils/cloudinary");
 
 // Generate Token
 const generateToken = (id) => {
@@ -13,32 +14,41 @@ const generateToken = (id) => {
 
 // Sign Up
 exports.addtUser = asyncHandler(async (req, res) => {
-  const {
-    name,
-    dob,
-    gender,
-    city,
-    phone,
-    bio,
-    userType,
-    email,
-    password,
-    photo,
-  } = req.body;
+  const { name, email, city, phone, password } = req.body;
 
-  if (!name || !email || !password) {
+  if (!name || !email || !password || !city || !phone) {
     res.status(400);
     throw new Error("Please all fields are required.");
   }
 
   const userExist = await User.findOne({ email: email });
-
   if (userExist) {
     res.status(400);
     throw new Error("Please email has been used. Choose another.");
   }
 
-  const user = await User.create(req.body);
+  // upload image in cloudinary
+  const b64 = Buffer.from(req.file.buffer).toString("base64");
+  let dataURI = "data:" + req.file.mimetype + ";base64," + b64;
+  const result = await cloudinary.handleUpload(dataURI);
+
+  if (!result) {
+    res.status(400);
+    throw new Error("Unable to save image to cloudinary");
+  }
+
+  const user = await User.create({
+    name,
+    email,
+    city,
+    phone,
+    password,
+    photo: {
+      public_id: result.public_id,
+      url: result.secure_url,
+    },
+  });
+
   //   Generate Token
   const token = generateToken(user._id);
 
@@ -52,28 +62,15 @@ exports.addtUser = asyncHandler(async (req, res) => {
   });
 
   if (user) {
-    const {
-      name,
-      dob,
-      gender,
-      city,
-      phone,
-      bio,
-      userType,
-      email,
-      password,
-      photo,
-    } = user;
+    const { _id, name, email, city, phone, photo, role } = user;
     res.status(201).json({
+      _id,
       name,
-      dob,
-      gender,
-      phone,
-      bio,
-      city,
-      userType,
       email,
-      photo,
+      city,
+      phone,
+      role,
+      photo: photo.url,
       token,
     });
   } else {
@@ -194,19 +191,15 @@ exports.login = asyncHandler(async (req, res) => {
     });
   }
   if (user && verified) {
-    const { _id, name, email, photo, city, phone, bio, dob, userType, gender } =
-      user;
+    const { _id, name, email, photo, city, phone, role } = user;
     res.status(200).json({
       _id,
       name,
-      dob,
-      gender,
-      phone,
-      city,
-      bio,
-      userType,
       email,
-      photo,
+      city,
+      phone,
+      role,
+      photo: photo.url,
       token,
     });
   } else {
