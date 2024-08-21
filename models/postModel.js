@@ -15,6 +15,15 @@ const postSchema = new mongoose.Schema(
       type: String,
       required: [true, "decription is required"],
     },
+    price: {
+      type: Number,
+      required: [true, "price is required"],
+    },
+    category: {
+      type: ObjectId,
+      ref: "Category",
+      required: [true, "category is required"],
+    },
     postedBy: {
       type: ObjectId,
       ref: "User",

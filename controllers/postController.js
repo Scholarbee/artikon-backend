@@ -1,22 +1,26 @@
 const cloudinary = require("../utils/cloudinary");
 const expressAsyncHandler = require("express-async-handler");
-const User = require("../models/userModel");
 const Post = require("../models/postModel");
-const jwt = require("jsonwebtoken");
-const bcrypt = require("bcryptjs");
-const Token = require("../models/tokenModel");
-const crypto = require("crypto");
 const sendEmail = require("../utils/sendEmail");
-const Multer = require("multer");
 
-const storage = new Multer.memoryStorage();
-const upload = Multer({
-  storage,
-});
-
-// Create post
+/**
+ * Add new post
+ */
 exports.createPost = expressAsyncHandler(async (req, res, next) => {
-  const { title, description, businessType } = req.body;
+  const { title, description, businessType, price, category } = req.body;
+  console.log(req.body);
+
+  if (
+    !title ||
+    !description ||
+    !businessType ||
+    !price ||
+    !category ||
+    !req.file
+  ) {
+    res.status(400);
+    throw new Error("All fields are required");
+  }
 
   // upload image in cloudinary
   const b64 = Buffer.from(req.file.buffer).toString("base64");
@@ -31,6 +35,8 @@ exports.createPost = expressAsyncHandler(async (req, res, next) => {
     title,
     description,
     businessType,
+    price,
+    category,
     postedBy: req.user._id,
     coverPhoto: {
       public_id: result.public_id,
@@ -48,30 +54,50 @@ exports.createPost = expressAsyncHandler(async (req, res, next) => {
   }
 });
 
-// Get my posts
+/**
+ * Get my posts
+ */
 exports.myPosts = expressAsyncHandler(async (req, res) => {
   const posts = await Post.find({ postedBy: req.user.id }).sort("-createdAt");
   // console.log(posts);
   res.status(200).json(posts);
 });
 
-// Get all posts
+/**
+ * Get all posts
+ */
 exports.allPosts = expressAsyncHandler(async (req, res) => {
-  const posts = await Post.find({ isActive: true }).sort("-createdAt");
-  // console.log(posts);
-  res.status(200).json(posts);
-});
-
-// Get all posts
-exports.getPosts = expressAsyncHandler(async (req, res) => {
-  const posts = await Post.find({})
-    .populate("postedBy", "name email")
+  const posts = await Post.find({ isActive: true })
+    .populate("postedBy", "name email photo")
     .sort("-createdAt");
   // console.log(posts);
-  res.status(200).json({ success: true, posts });
+  if (posts) {
+    res.status(200).json({ success: true, posts });
+  } else {
+    res.status(500);
+    throw new Error("Mongodb error");
+  }
 });
 
-// Get post by id
+/**
+ * Get all posts
+ */
+exports.getPosts = expressAsyncHandler(async (req, res) => {
+  const posts = await Post.find({})
+    .populate("postedBy", "name email photo")
+    .sort("-createdAt");
+
+  if (posts) {
+    res.status(200).json({ success: true, posts });
+  } else {
+    res.status(500);
+    throw new Error("Mongodb error");
+  }
+});
+
+/**
+ * Get post by id
+ */
 exports.getPost = expressAsyncHandler(async (req, res) => {
   const post = await Post.findById(req.params.id).populate(
     "comments.postedBy",
@@ -88,7 +114,9 @@ exports.getPost = expressAsyncHandler(async (req, res) => {
   }
 });
 
-// Get post info by id
+/**
+ * Get post info by id
+ */
 exports.getPostInfo = expressAsyncHandler(async (req, res) => {
   const post = await Post.findById(req.params.id).populate(
     "postedBy",
@@ -105,7 +133,9 @@ exports.getPostInfo = expressAsyncHandler(async (req, res) => {
   }
 });
 
-// Update post
+/**
+ * Update post
+ */
 exports.editPost = expressAsyncHandler(async (req, res) => {
   const { title, content, image } = req.body;
   const currentPost = await Post.findById(req.params.id);
@@ -151,7 +181,9 @@ exports.editPost = expressAsyncHandler(async (req, res) => {
   }
 });
 
-//delete post
+/**
+ * delete post
+ */
 exports.deletePost = expressAsyncHandler(async (req, res, next) => {
   const currentPost = await Post.findById(req.params.id);
 
@@ -174,7 +206,12 @@ exports.deletePost = expressAsyncHandler(async (req, res, next) => {
   }
 });
 
-//add comment
+/**
+ * add comment
+ * @param {*} req
+ * @param {*} res
+ * @param {*} next
+ */
 exports.addComment = async (req, res, next) => {
   const { comment } = req.body;
   // console.log(req.body);
@@ -200,7 +237,12 @@ exports.addComment = async (req, res, next) => {
   }
 };
 
-//add like
+/**
+ * add like
+ * @param {*} req
+ * @param {*} res
+ * @param {*} next
+ */
 exports.addLike = async (req, res, next) => {
   const post = await Post.findByIdAndUpdate(
     req.params.id,
@@ -225,7 +267,12 @@ exports.addLike = async (req, res, next) => {
   }
 };
 
-//remove like
+/**
+ * remove like
+ * @param {*} req
+ * @param {*} res
+ * @param {*} next
+ */
 exports.removeLike = async (req, res, next) => {
   const post = await Post.findByIdAndUpdate(
     req.params.id,
@@ -250,7 +297,9 @@ exports.removeLike = async (req, res, next) => {
   }
 };
 
-// // Get post by user id (My posts)
+/**
+ * Get post by user id (My posts)
+ */
 exports.bookAppointment = expressAsyncHandler(async (req, res) => {
   const { phone, address, appointmnetDate, ownerName, ownerEmail } = req.body;
   const newDate = new Date(appointmnetDate);
@@ -441,6 +490,11 @@ exports.getUserPlacedOrders = async (req, res) => {
   }
 };
 
+/**
+ *
+ * @param {*} req
+ * @param {*} res
+ */
 exports.getUserBookedAppointments = async (req, res) => {
   const posts = await Post.find(
     { "appointments.bookedBy": req.user._id },
@@ -473,7 +527,9 @@ exports.getUserBookedAppointments = async (req, res) => {
   }
 };
 
-// Block user
+/**
+ * block post
+ */
 exports.blockPost = expressAsyncHandler(async (req, res) => {
   const { postTitle, ownerName, ownerEmail } = req.body;
   let { id } = req.params;
@@ -507,7 +563,9 @@ exports.blockPost = expressAsyncHandler(async (req, res) => {
   }
 });
 
-// Unblock user
+/**
+ * Unblock post
+ */
 exports.unblockPost = expressAsyncHandler(async (req, res) => {
   const { postTitle, ownerName, ownerEmail } = req.body;
   let { id } = req.params;

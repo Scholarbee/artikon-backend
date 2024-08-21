@@ -41,6 +41,7 @@ exports.addtUser = asyncHandler(async (req, res) => {
     name,
     email,
     city,
+    // brand,
     phone,
     password,
     photo: {
@@ -62,12 +63,13 @@ exports.addtUser = asyncHandler(async (req, res) => {
   });
 
   if (user) {
-    const { _id, name, email, city, phone, photo, role } = user;
+    const { _id, name, email, brand, city, phone, photo, role } = user;
     res.status(201).json({
       _id,
       name,
       email,
       city,
+      // brand,
       phone,
       role,
       photo: photo.url,
@@ -191,12 +193,13 @@ exports.login = asyncHandler(async (req, res) => {
     });
   }
   if (user && verified) {
-    const { _id, name, email, photo, city, phone, role } = user;
+    const { _id, name, email, brand, photo, city, phone, role } = user;
     res.status(200).json({
       _id,
       name,
       email,
       city,
+      brand,
       phone,
       role,
       photo: photo.url,
@@ -419,5 +422,41 @@ exports.unblockUser = asyncHandler(async (req, res) => {
   } catch (error) {
     res.status(500);
     throw new Error("Email not sent, please try again");
+  }
+});
+
+/**
+ * Register as an agent
+ */
+exports.registerAgent = asyncHandler(async (req, res) => {
+  const { brandName, brandLocation, brandContact } = req.body;
+
+  if (!brandName || !brandLocation || !brandContact) {
+    res.status(400);
+    throw new Error("All fields are required.");
+  }
+
+  const brandExist = await User.findOne({ "brand.brandName": brandName });
+  if (brandExist) {
+    res.status(400);
+    throw new Error(
+      "Brand name has been registered already. Please choose another."
+    );
+  }
+
+  const user = await User.findByIdAndUpdate(
+    req.user._id,
+    {
+      brand: { brandName, brandLocation, brandContact },
+      role: "agent",
+    },
+    { new: true }
+  );
+
+  if (user) {
+    res.status(200).json({ success: true, user });
+  } else {
+    res.status(500);
+    throw new Error("Internal server error");
   }
 });

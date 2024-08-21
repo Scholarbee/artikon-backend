@@ -15,6 +15,19 @@ const userSchema = mongoose.Schema(
       type: String,
       required: [true, "Please add a phone number"],
     },
+    brand: {
+      brandName: {
+        type: String,
+        unique: true,
+      },
+      brandLocation: {
+        type: String,
+      },
+      brandContact: {
+        type: String,
+      },
+    },
+
     email: {
       type: String,
       required: [true, "Please add an email"],
