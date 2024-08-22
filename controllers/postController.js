@@ -118,10 +118,9 @@ exports.getPost = expressAsyncHandler(async (req, res) => {
  * Get post info by id
  */
 exports.getPostInfo = expressAsyncHandler(async (req, res) => {
-  const post = await Post.findById(req.params.id).populate(
-    "postedBy",
-    "name city phone email"
-  );
+  const post = await Post.findById(req.params.id)
+    .populate("postedBy", "name city phone email brand")
+    .populate("category", "category");
   if (post) {
     res.status(200).json({
       success: true,
