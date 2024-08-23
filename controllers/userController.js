@@ -69,7 +69,7 @@ exports.addtUser = asyncHandler(async (req, res) => {
       name,
       email,
       city,
-      // brand,
+      brand,
       phone,
       role,
       photo: photo.url,

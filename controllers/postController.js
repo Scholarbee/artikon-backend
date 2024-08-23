@@ -101,7 +101,7 @@ exports.getPosts = expressAsyncHandler(async (req, res) => {
 exports.getPost = expressAsyncHandler(async (req, res) => {
   const post = await Post.findById(req.params.id).populate(
     "comments.postedBy",
-    "name"
+    "name photo"
   );
   if (post) {
     res.status(200).json({
